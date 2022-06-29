@@ -1,0 +1,107 @@
+From 0c228e75a774508824ae58b2fc53ef71c1b64435 Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH 2/5] Converted the series of function-like macros in
+ `Arduino.h` into constexpr functions in the case of C++. Required in order to
+ avoid conflicts to C++ stdlib.
+
+---
+ hardware/arduino/avr/cores/arduino/Arduino.h | 64 ++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
+
+diff --git a/hardware/arduino/avr/cores/arduino/Arduino.h b/hardware/arduino/avr/cores/arduino/Arduino.h
+index 0aaef6b..6ab4e48 100644
+--- a/hardware/arduino/avr/cores/arduino/Arduino.h
++++ b/hardware/arduino/avr/cores/arduino/Arduino.h
+@@ -93,6 +93,39 @@ void yield(void);
+ }; // extern "C"
+ #endif
+ 
++#if defined(__cplusplus)
++template <typename T> constexpr T min(const T a, const T b){
++  return a<b?a:b;
++}
++
++template <typename T> constexpr T max(const T a, const T b){
++  return a>b?a:b;
++}
++
++template <typename T> constexpr T abs(const T x){
++  return x>0?x:-x;
++}
++
++template <typename T> constexpr T constrain(const T amt, const T low, const T high){
++  return amt<low?low:(amt>high?high:amt);
++}
++
++template <typename T> constexpr T round(const T x){
++  return x>=0?static_cast<long>(x+0.5):static_cast<long>(x-0.5);
++}
++
++template <typename T> constexpr T radians(const T deg){
++  return deg * DEG_TO_RAD;
++}
++
++template <typename T> constexpr T degrees(const T rad){
++  return rad * RAD_TO_DEG;
++}
++
++template <typename T> constexpr T sq(const T x){
++  return x * x;
++}
++#else
+ #define min(a,b) ((a)<(b)?(a):(b))
+ #define max(a,b) ((a)>(b)?(a):(b))
+ #define abs(x) ((x)>0?(x):-(x))
+@@ -101,10 +134,39 @@ void yield(void);
+ #define radians(deg) ((deg)*DEG_TO_RAD)
+ #define degrees(rad) ((rad)*RAD_TO_DEG)
+ #define sq(x) ((x)*(x))
++#endif
+ 
+ #define interrupts() sei()
+ #define noInterrupts() cli()
+ 
++#if defined(__cplusplus)
++constexpr unsigned long clockCyclesPerMicrosecond(){
++  return F_CPU / 1000000L;
++}
++
++template <typename T> constexpr T clockCyclesToMicroseconds(const T a){
++  return a / clockCyclesPerMicrosecond();
++}
++
++template <typename T> constexpr T microsecondsToClockCycles(const T a){
++  return a * clockCyclesPerMicrosecond();
++}
++
++constexpr unsigned char lowByte(uint16_t w){
++  return w & 0xff;
++}
++
++constexpr unsigned char highByte(uint16_t w){
++  return w >> 8;
++}
++
++template <typename T>
++constexpr bool bitRead(T value, unsigned char bit){
++  return (value >> bit) & 0x01;
++}
++
++#else
++
+ #define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
+ #define clockCyclesToMicroseconds(a) ( (a) / clockCyclesPerMicrosecond() )
+ #define microsecondsToClockCycles(a) ( (a) * clockCyclesPerMicrosecond() )
+@@ -113,6 +175,8 @@ void yield(void);
+ #define highByte(w) ((uint8_t) ((w) >> 8))
+ 
+ #define bitRead(value, bit) (((value) >> (bit)) & 0x01)
++#endif
++
+ #define bitSet(value, bit) ((value) |= (1UL << (bit)))
+ #define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+ #define bitToggle(value, bit) ((value) ^= (1UL << (bit)))
+-- 
+2.32.0
+

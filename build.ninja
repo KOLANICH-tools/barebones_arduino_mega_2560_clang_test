@@ -1,0 +1,97 @@
+#!/usr/bin/env -S ninja -f 
+
+include ./toolchain.ninja
+
+# Currently there is NO LTO!
+
+
+clangBinDir = /usr/lib/llvm-17/bin/
+cc = $clangBinDir/clang
+cpp = $clangBinDir/clang++
+
+asc = $cc
+linker_frontend = $cpp
+
+ar = llvm-ar
+ranlib = llvm-ranlib
+underlying_linker = ld.lld
+
+
+#ARDUINO_IDE_ROOT = ../arduino_ide/1.8.19
+ARDUINO_IDE_ROOT = $toolchainDir
+
+ARD_HW = $ARDUINO_IDE_ROOT/hardware
+ARDUINO_CORES_PATH = $ARD_HW/arduino
+ARD_TOOLS = $ARD_HW/tools
+
+MACRODEFS = -DARDUINO=108019 -DARDUINO_ARCH_AVR -DARDUINO_AVR_MEGA2560 -DARDUINO_AVR_MEGA_MENU_CPU_ATMEGA2560 -DF_CPU=16000000L
+OPT_FLAGS = -O3 -DNDEBUG
+MCU = -mmcu=atmega2560
+
+C_FLAGS = --sysroot=$ARD_TOOLS/avr $MACRODEFS -I$ARDUINO_CORES_PATH/avr/cores/arduino -I$ARDUINO_CORES_PATH/avr/variants/mega
+D_FLAGS = -fcolor-diagnostics --target=avr $C_FLAGS
+G_FLAGS = -ffunction-sections -fdata-sections
+H_FLAGS = -fpermissive -fno-exceptions $G_FLAGS -fno-threadsafe-statics
+L_FLAGS = -fdebug-default-version=3 $MCU $G_FLAGS -fno-fat-lto-objects $OPT_FLAGS -MD
+N_FLAGS = -fno-rtti $MCU $H_FLAGS $OPT_FLAGS
+M_FLAGS = $N_FLAGS -std=gnu++2b -MD
+
+rule cc
+  command = $cc $D_FLAGS $L_FLAGS -MT $out -MF $out.d -o $out -c $in
+  description = Compile $out
+  depfile = $out.d
+  deps = gcc
+
+rule cpp
+  command = $cpp $D_FLAGS $M_FLAGS -MT $out -MF $out.d -o $out -c $in
+  description = Compile $out
+  depfile = $out.d
+  deps = gcc
+
+rule as
+  command = $asc $D_FLAGS -I$ARD_TOOLS/avr/avr/include $MCU -x assembler-with-cpp  $OPT_FLAGS -MD -MT $out -MF $out.d -o $out -c $in
+  description = Compile $out
+  depfile = $out.d
+  deps = gcc
+
+rule link_static_arduino_lib_core
+  command = $ar qc $out $in && $ranlib $out
+  description = Link $out
+
+rule link_main
+  command = $linker_frontend --target=avr --sysroot=$ARD_TOOLS/avr $N_FLAGS -lm  -fuse-linker-plugin -v --ld-path="$underlying_linker" -o $out $in
+  description = Link $out
+
+build CMakeFiles/_arduino_lib_core.dir/WInterrupts.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/WInterrupts.c | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/hooks.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/hooks.c | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/wiring.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/wiring.c | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/wiring_analog.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/wiring_analog.c | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/wiring_digital.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/wiring_digital.c | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/wiring_pulse.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/wiring_pulse.c | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/wiring_shift.c.obj: cc $ARDUINO_CORES_PATH/avr/cores/arduino/wiring_shift.c | toolchain_ready
+
+build CMakeFiles/_arduino_lib_core.dir/CDC.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/CDC.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/HardwareSerial.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/HardwareSerial.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/HardwareSerial0.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/HardwareSerial0.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/HardwareSerial1.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/HardwareSerial1.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/HardwareSerial2.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/HardwareSerial2.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/HardwareSerial3.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/HardwareSerial3.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/IPAddress.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/IPAddress.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/PluggableUSB.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/PluggableUSB.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/Print.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/Print.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/Stream.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/Stream.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/Tone.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/Tone.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/USBCore.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/USBCore.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/WMath.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/WMath.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/WString.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/WString.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/abi.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/abi.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/main.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/main.cpp | toolchain_ready
+build CMakeFiles/_arduino_lib_core.dir/new.cpp.obj: cpp $ARDUINO_CORES_PATH/avr/cores/arduino/new.cpp | toolchain_ready
+
+build CMakeFiles/_arduino_lib_core.dir/wiring_pulse.S.obj: as $ARDUINO_CORES_PATH/avr/cores/arduino/wiring_pulse.S | toolchain_ready
+
+build CMakeFiles/main.cpp.obj: cpp ./main.cpp | toolchain_ready
+
+build lib_arduino_lib_core.a: link_static_arduino_lib_core ./CMakeFiles/_arduino_lib_core.dir/WInterrupts.c.obj CMakeFiles/_arduino_lib_core.dir/hooks.c.obj CMakeFiles/_arduino_lib_core.dir/wiring.c.obj CMakeFiles/_arduino_lib_core.dir/wiring_analog.c.obj CMakeFiles/_arduino_lib_core.dir/wiring_digital.c.obj CMakeFiles/_arduino_lib_core.dir/wiring_pulse.c.obj CMakeFiles/_arduino_lib_core.dir/wiring_shift.c.obj CMakeFiles/_arduino_lib_core.dir/CDC.cpp.obj CMakeFiles/_arduino_lib_core.dir/HardwareSerial.cpp.obj CMakeFiles/_arduino_lib_core.dir/HardwareSerial0.cpp.obj CMakeFiles/_arduino_lib_core.dir/HardwareSerial1.cpp.obj CMakeFiles/_arduino_lib_core.dir/HardwareSerial2.cpp.obj CMakeFiles/_arduino_lib_core.dir/HardwareSerial3.cpp.obj CMakeFiles/_arduino_lib_core.dir/IPAddress.cpp.obj CMakeFiles/_arduino_lib_core.dir/PluggableUSB.cpp.obj CMakeFiles/_arduino_lib_core.dir/Print.cpp.obj CMakeFiles/_arduino_lib_core.dir/Stream.cpp.obj CMakeFiles/_arduino_lib_core.dir/Tone.cpp.obj CMakeFiles/_arduino_lib_core.dir/USBCore.cpp.obj CMakeFiles/_arduino_lib_core.dir/WMath.cpp.obj CMakeFiles/_arduino_lib_core.dir/WString.cpp.obj CMakeFiles/_arduino_lib_core.dir/abi.cpp.obj CMakeFiles/_arduino_lib_core.dir/main.cpp.obj CMakeFiles/_arduino_lib_core.dir/new.cpp.obj CMakeFiles/_arduino_lib_core.dir/wiring_pulse.S.obj | toolchain_ready
+
+build main.elf: link_main CMakeFiles/main.cpp.obj lib_arduino_lib_core.a  lib_arduino_lib_core.a | toolchain_ready

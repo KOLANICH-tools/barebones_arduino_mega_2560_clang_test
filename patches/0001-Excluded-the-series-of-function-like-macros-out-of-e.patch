@@ -1,0 +1,39 @@
+From ba21bfab11c23b259515a515d64b527fcbf8674f Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH 1/5] Excluded the series of function-like macros out of
+ `extern "C"{` block in `Arduino.h`.
+
+---
+ hardware/arduino/avr/cores/arduino/Arduino.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/hardware/arduino/avr/cores/arduino/Arduino.h b/hardware/arduino/avr/cores/arduino/Arduino.h
+index 91eeb16..0aaef6b 100644
+--- a/hardware/arduino/avr/cores/arduino/Arduino.h
++++ b/hardware/arduino/avr/cores/arduino/Arduino.h
+@@ -89,6 +89,10 @@ void yield(void);
+ #undef abs
+ #endif
+ 
++#if defined(__cplusplus)
++}; // extern "C"
++#endif
++
+ #define min(a,b) ((a)<(b)?(a):(b))
+ #define max(a,b) ((a)>(b)?(a):(b))
+ #define abs(x) ((x)>0?(x):-(x))
+@@ -126,6 +130,10 @@ typedef unsigned int word;
+ typedef bool boolean;
+ typedef uint8_t byte;
+ 
++#if defined(__cplusplus)
++extern "C"{
++#endif
++
+ void init(void);
+ void initVariant(void);
+ 
+-- 
+2.32.0
+

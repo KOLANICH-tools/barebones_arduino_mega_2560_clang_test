@@ -1,0 +1,256 @@
+From 67c8d60952076f4fbeb98f7127940f1b8ae37550 Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH] Some changes in `include/bits` to allow C++ stdlib usage.
+
+---
+ .../tools/avr/avr/include/bits/c++config.h    | 49 +++++++++++--------
+ .../tools/avr/avr/include/bits/c++locale.h    |  2 +
+ .../tools/avr/avr/include/bits/os_defines.h   | 13 +----
+ 3 files changed, 32 insertions(+), 32 deletions(-)
+
+diff --git a/hardware/tools/avr/avr/include/bits/c++config.h b/hardware/tools/avr/avr/include/bits/c++config.h
+index 4999e34..1cf6c41 100644
+--- a/hardware/tools/avr/avr/include/bits/c++config.h
++++ b/hardware/tools/avr/avr/include/bits/c++config.h
+@@ -625,10 +625,12 @@ namespace std
+ 
+ #if __cplusplus > 201402L
+ // In C++17 mathematical special functions are in namespace std.
+-# define _GLIBCXX_USE_STD_SPEC_FUNCS 1
++//#undef _GLIBCXX_USE_STD_SPEC_FUNCS
++#warning "Special functions are disabled because std::isnan is broken."
+ #elif __cplusplus >= 201103L && __STDCPP_WANT_MATH_SPEC_FUNCS__ != 0
+ // For C++11 and C++14 they are in namespace std when requested.
+ # define _GLIBCXX_USE_STD_SPEC_FUNCS 1
++//#undef _GLIBCXX_USE_STD_SPEC_FUNCS
+ #endif
+ 
+ // The remainder of the prewritten config is automatic; all the
+@@ -657,7 +659,7 @@ namespace std
+ # ifndef _GLIBCXX_USE_C99_MATH
+ #  define _GLIBCXX_USE_C99_MATH _GLIBCXX11_USE_C99_MATH
+ # endif
+-# ifndef _GLIBCXX_USE_C99_COMPLEX
++/*# ifndef _GLIBCXX_USE_C99_COMPLEX
+ # define _GLIBCXX_USE_C99_COMPLEX _GLIBCXX11_USE_C99_COMPLEX
+ # endif
+ # ifndef _GLIBCXX_USE_C99_STDIO
+@@ -668,12 +670,12 @@ namespace std
+ # endif
+ # ifndef _GLIBCXX_USE_C99_WCHAR
+ # define _GLIBCXX_USE_C99_WCHAR _GLIBCXX11_USE_C99_WCHAR
+-# endif
++# endif*/
+ #else
+ # ifndef _GLIBCXX_USE_C99_MATH
+ #  define _GLIBCXX_USE_C99_MATH _GLIBCXX98_USE_C99_MATH
+ # endif
+-# ifndef _GLIBCXX_USE_C99_COMPLEX
++/*# ifndef _GLIBCXX_USE_C99_COMPLEX
+ # define _GLIBCXX_USE_C99_COMPLEX _GLIBCXX98_USE_C99_COMPLEX
+ # endif
+ # ifndef _GLIBCXX_USE_C99_STDIO
+@@ -684,7 +686,7 @@ namespace std
+ # endif
+ # ifndef _GLIBCXX_USE_C99_WCHAR
+ # define _GLIBCXX_USE_C99_WCHAR _GLIBCXX98_USE_C99_WCHAR
+-# endif
++# endif*/
+ #endif
+ 
+ // Unless explicitly specified, enable char8_t extensions only if the core
+@@ -789,7 +791,7 @@ namespace std
+ #define _GLIBCXX_HAVE_ACOSL 1
+ 
+ /* Define to 1 if you have the `aligned_alloc' function. */
+-#define _GLIBCXX_HAVE_ALIGNED_ALLOC 1
++#undef _GLIBCXX_HAVE_ALIGNED_ALLOC
+ 
+ /* Define to 1 if you have the <arpa/inet.h> header file. */
+ #define _GLIBCXX_HAVE_ARPA_INET_H 1
+@@ -819,7 +821,7 @@ namespace std
+ #define _GLIBCXX_HAVE_ATOMIC_LOCK_POLICY 1
+ 
+ /* Define to 1 if you have the `at_quick_exit' function. */
+-#define _GLIBCXX_HAVE_AT_QUICK_EXIT 1
++//#undef _GLIBCXX_HAVE_AT_QUICK_EXIT
+ 
+ /* Define to 1 if the target assembler supports thread-local storage. */
+ /* #undef _GLIBCXX_HAVE_CC_TLS */
+@@ -958,12 +960,13 @@ namespace std
+ 
+ /* Define to 1 if you have the `isnan' function. */
+ /* #undef _GLIBCXX_HAVE_ISNAN */
++#define _GLIBCXX_HAVE_ISNAN 1
+ 
+ /* Define to 1 if you have the `isnanf' function. */
+ #define _GLIBCXX_HAVE_ISNANF 1
+ 
+ /* Define to 1 if you have the `isnanl' function. */
+-#define _GLIBCXX_HAVE_ISNANL 1
++#define _GLIBCXX_HAVE_ISNANL 0
+ 
+ /* Defined if iswblank exists. */
+ #define _GLIBCXX_HAVE_ISWBLANK 1
+@@ -978,19 +981,19 @@ namespace std
+ #define _GLIBCXX_HAVE_LDEXPL 1
+ 
+ /* Define to 1 if you have the <libintl.h> header file. */
+-#define _GLIBCXX_HAVE_LIBINTL_H 1
++#define _GLIBCXX_HAVE_LIBINTL_H 0
+ 
+ /* Only used in build directory testsuite_hooks.h. */
+-#define _GLIBCXX_HAVE_LIMIT_AS 1
++#define _GLIBCXX_HAVE_LIMIT_AS 0
+ 
+ /* Only used in build directory testsuite_hooks.h. */
+-#define _GLIBCXX_HAVE_LIMIT_DATA 1
++#define _GLIBCXX_HAVE_LIMIT_DATA 0
+ 
+ /* Only used in build directory testsuite_hooks.h. */
+-#define _GLIBCXX_HAVE_LIMIT_FSIZE 1
++#define _GLIBCXX_HAVE_LIMIT_FSIZE 0
+ 
+ /* Only used in build directory testsuite_hooks.h. */
+-#define _GLIBCXX_HAVE_LIMIT_RSS 1
++#define _GLIBCXX_HAVE_LIMIT_RSS 0
+ 
+ /* Only used in build directory testsuite_hooks.h. */
+ #define _GLIBCXX_HAVE_LIMIT_VMEM 0
+@@ -1029,7 +1032,7 @@ namespace std
+ /* #undef _GLIBCXX_HAVE_MACHINE_PARAM_H */
+ 
+ /* Define if mbstate_t exists in wchar.h. */
+-#define _GLIBCXX_HAVE_MBSTATE_T 1
++#undef _GLIBCXX_HAVE_MBSTATE_T
+ 
+ /* Define to 1 if you have the `memalign' function. */
+ #define _GLIBCXX_HAVE_MEMALIGN 1
+@@ -1063,6 +1066,7 @@ namespace std
+ 
+ /* Define if <math.h> defines obsolete isnan function. */
+ /* #undef _GLIBCXX_HAVE_OBSOLETE_ISNAN */
++#define _GLIBCXX_HAVE_OBSOLETE_ISNAN 1
+ 
+ /* Define if poll is available in <poll.h>. */
+ #define _GLIBCXX_HAVE_POLL 1
+@@ -1087,7 +1091,7 @@ namespace std
+ /* #undef _GLIBCXX_HAVE_QFPCLASS */
+ 
+ /* Define to 1 if you have the `quick_exit' function. */
+-#define _GLIBCXX_HAVE_QUICK_EXIT 1
++//#undef _GLIBCXX_HAVE_QUICK_EXIT
+ 
+ /* Define if readlink is available in <unistd.h>. */
+ #define _GLIBCXX_HAVE_READLINK 1
+@@ -1256,7 +1260,7 @@ namespace std
+ #define _GLIBCXX_HAVE_UNISTD_H 1
+ 
+ /* Define to 1 if you have the `uselocale' function. */
+-#define _GLIBCXX_HAVE_USELOCALE 1
++//#undef _GLIBCXX_HAVE_USELOCALE
+ 
+ /* Defined if usleep exists. */
+ /* #undef _GLIBCXX_HAVE_USLEEP */
+@@ -1274,7 +1278,7 @@ namespace std
+ #define _GLIBCXX_HAVE_VWSCANF 1
+ 
+ /* Define to 1 if you have the <wchar.h> header file. */
+-#define _GLIBCXX_HAVE_WCHAR_H 1
++//#undef _GLIBCXX_HAVE_WCHAR_H
+ 
+ /* Defined if wcstof exists. */
+ #define _GLIBCXX_HAVE_WCSTOF 1
+@@ -1594,6 +1598,9 @@ namespace std
+ /* Define if the compiler supports C++11 atomics. */
+ #define _GLIBCXX_ATOMIC_BUILTINS 1
+ 
++#warning "Hack to prevent inclusion of pthreads, Arduino is a single-task single-CPU single-thread platform"
++#define _GLIBCXX_GCC_GTHR_H
++
+ /* Define to use concept checking code from the boost libraries. */
+ /* #undef _GLIBCXX_CONCEPT_CHECKS */
+ 
+@@ -1682,7 +1689,7 @@ namespace std
+ 
+ /* Define if C99 functions or macros in <math.h> should be imported in
+    <tr1/cmath> in namespace std::tr1. */
+-#define _GLIBCXX_USE_C99_MATH_TR1 1
++// #undef _GLIBCXX_USE_C99_MATH_TR1
+ 
+ /* Define if C99 types in <stdint.h> should be imported in <tr1/cstdint> in
+    namespace std::tr1. */
+@@ -1791,7 +1798,7 @@ namespace std
+ #define _GLIBCXX_USE_UTIMENSAT 1
+ 
+ /* Define if code specialized for wchar_t should be used. */
+-#define _GLIBCXX_USE_WCHAR_T 1
++// #undef _GLIBCXX_USE_WCHAR_T
+ 
+ /* Define to 1 if a verbose library is built, or 0 otherwise. */
+ #define _GLIBCXX_VERBOSE 1
+@@ -1803,14 +1810,14 @@ namespace std
+ #define _GLIBCXX_X86_RDSEED 1
+ 
+ /* Define to 1 if mutex_timedlock is available. */
+-#define _GTHREAD_USE_MUTEX_TIMEDLOCK 1
++//#undef _GTHREAD_USE_MUTEX_TIMEDLOCK
+ 
+ /* Define for large files, on AIX-style hosts. */
+ /* #undef _GLIBCXX_LARGE_FILES */
+ 
+ /* Define if all C++11 floating point overloads are available in <math.h>.  */
+ #if __cplusplus >= 201103L
+-/* #undef __CORRECT_ISO_CPP11_MATH_H_PROTO_FP */
++#define __CORRECT_ISO_CPP11_MATH_H_PROTO_FP 1
+ #endif
+ 
+ /* Define if all C++11 integral type overloads are available in <math.h>.  */
+diff --git a/hardware/tools/avr/avr/include/bits/c++locale.h b/hardware/tools/avr/avr/include/bits/c++locale.h
+index bc24355..3da10a4 100644
+--- a/hardware/tools/avr/avr/include/bits/c++locale.h
++++ b/hardware/tools/avr/avr/include/bits/c++locale.h
+@@ -59,6 +59,8 @@ namespace std _GLIBCXX_VISIBILITY(default)
+ {
+ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 
++  typedef int __locale_t;
++
+   typedef __locale_t		__c_locale;
+ 
+   // Convert numeric value of type double and long double to string and
+diff --git a/hardware/tools/avr/avr/include/bits/os_defines.h b/hardware/tools/avr/avr/include/bits/os_defines.h
+index 64f78df..2479b9f 100644
+--- a/hardware/tools/avr/avr/include/bits/os_defines.h
++++ b/hardware/tools/avr/avr/include/bits/os_defines.h
+@@ -41,24 +41,15 @@
+ // Provide a declaration for the possibly deprecated gets function, as
+ // glibc 2.15 and later does not declare gets for ISO C11 when
+ // __GNU_SOURCE is defined.
+-#if __GLIBC_PREREQ(2,15) && defined(_GNU_SOURCE)
++#if defined(_GNU_SOURCE)
+ # undef _GLIBCXX_HAVE_GETS
+ #endif
+ 
+ // Glibc 2.23 removed the obsolete isinf and isnan declarations. Check the
+ // version dynamically in case it has changed since libstdc++ was configured.
+-#define _GLIBCXX_NO_OBSOLETE_ISINF_ISNAN_DYNAMIC __GLIBC_PREREQ(2,23)
++#define _GLIBCXX_NO_OBSOLETE_ISINF_ISNAN_DYNAMIC 1
+ 
+-#if __GLIBC_PREREQ(2, 27)
+-// Since glibc 2.27 pthread_self() is usable without linking to libpthread.
+-# define _GLIBCXX_NATIVE_THREAD_ID pthread_self()
+-#else
+-// Before then it was in libc.so.6 but not libc.a, and always returns 0,
+-// which breaks the invariant this_thread::get_id() != thread::id{}.
+-// So only use it if we know the libpthread version is available.
+-// Otherwise use (__gthread_t)1 as the ID of the main (and only) thread.
+ # define _GLIBCXX_NATIVE_THREAD_ID \
+   (__gthread_active_p() ? __gthread_self() : (__gthread_t)1)
+ #endif
+ 
+-#endif
+-- 
+2.32.0
+

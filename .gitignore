@@ -1,0 +1,9 @@
+*.a
+*.obj
+*.obj.d
+*.stamp
+/CMakeFiles
+/toolchain
+/download
+/.ninja_deps
+/.ninja_log

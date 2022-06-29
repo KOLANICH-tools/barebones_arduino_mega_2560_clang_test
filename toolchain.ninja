@@ -1,0 +1,120 @@
+#!/usr/bin/env -S ninja -f 
+
+downloadDir = ./download
+toolchainDir = ./toolchain
+
+
+arduinoStudioURI = https://downloads.arduino.cc/arduino-1.8.19-linux64.tar.xz
+stdlibProgmemPatchURI = https://patch-diff.githubusercontent.com/raw/avrdudes/avr-libc/pull/887.patch
+stdlibWdtHAsmImmediatePatchURI = https://patch-diff.githubusercontent.com/raw/avrdudes/avr-libc/pull/888.patch
+toolchainArchiveURL = https://downloads.arduino.cc/tools/avr-gcc-7.3.0-atmel3.6.1-arduino7-x86_64-pc-linux-gnu.tar.bz2
+
+#cp -R /usr/include/x86_64-linux-gnu/c++/11/bits hardware/tools/avr/avr/include/bits
+#cp -R /usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h hardware/tools/avr/avr/include/bits/error_constants.h
+#hardware/tools/avr/avr/include/bits/
+#hardware/tools/avr/avr/include/c++
+#hardware/tools/avr/avr/include/features.h
+
+rule dummy
+  command = echo dummy $in "->" $out
+  description = dummy rule to link $in -> $out
+
+###############
+
+# obsolete versions, don't enable, actual versions are within the IDE archive itself
+#ardArchiveURL = https://downloads.arduino.cc/cores/core-ArduinoCore-megaavr-1.8.7.tar.bz2
+#ardArchiveURL = https://downloads.arduino.cc/cores/staging/avr-1.8.5.tar.bz2
+
+#build $downloadDir/ard.tbz: aria2c
+#  uri = $ardArchiveURL
+
+#build $coreDir: untar $downloadDir/ard.tbz | $toolchainDir
+#  stamp = avr.stamp
+#  pool = console
+#  restat = 1
+
+# add $coreDir into side dependencies here, if you update the deps with the downloaded version
+build avr.stamp: dummy ./avr.dd | toolchain.stamp
+  dyndep = ./avr.dd
+
+#################
+
+coresParentDir = $toolchainDir/hardware/arduino
+coreDir = $coresParentDir/avr
+toolsDir = $toolchainDir/hardware/tools
+
+#toolchain/hardware/arduino/avr/cores/arduino/WInterrupts.c
+
+rule mkDir
+  command = mkdir -p $out
+  description = Create dir $out
+
+build $downloadDir: mkDir
+#build $toolchainDir: mkDir
+
+rule aria2c
+  command = aria2c --auto-file-renaming=false --continue -j 15 -x 15 -o $out $uri
+  description = download $out
+
+build $downloadDir/gcc.tbz: aria2c
+  uri = $toolchainArchiveURL
+build $downloadDir/ard_s.tbz: aria2c
+  uri = $arduinoStudioURI
+build $downloadDir/progmem.patch: aria2c
+  uri = $stdlibProgmemPatchURI
+build $downloadDir/wdt.h_immediate.patch: aria2c
+  uri = $stdlibWdtHAsmImmediatePatchURI
+
+
+rule mv
+  command = mv $in $out
+  description = moving $in to $out
+
+
+rule scandir
+  command = ./scandir.sh $in $out
+#printf 'ninja_dyndep_version = 1\nbuild $1 | %s : dyndep\n  restat = 1\n' "`find "$2" -type f | tr '\n' ' '`" > $3
+
+
+rule untar
+  command = mkdir -p $out && tar -C $out -xf $in --strip-components 1 && touch $stamp
+  description = unpack $in to $out
+
+build $toolchainDir: untar $downloadDir/ard_s.tbz
+  stamp = toolchain.stamp
+  pool = console
+  restat = 1
+
+build $toolsDir/avr: untar $downloadDir/gcc.tbz | $toolchainDir
+  stamp = gcc.stamp
+  pool = console
+  restat = 1
+
+build toolchain.stamp: dummy ./toolchain.dd | $toolchainDir
+  dyndep = ./toolchain.dd
+
+build gcc.stamp: dummy ./gcc.dd | $toolsDir/avr avr.stamp
+  dyndep = ./gcc.dd
+
+rule patch
+  command = patch -d $mainDir -p 1 < $in
+  description = patching
+  restat = 1
+
+build $toolchainDir/hardware/tools/avr/avr/include/avr/pgmspace.h: patch $downloadDir/progmem.patch | gcc.stamp
+  mainDir = $toolchainDir/hardware/tools/avr/avr/
+  pool = console
+
+build $toolchainDir/hardware/tools/avr/avr/include/avr/wdt.h: patch $downloadDir/wdt.h_immediate.patch | gcc.stamp
+  mainDir = $toolchainDir/hardware/tools/avr/avr/
+  pool = console
+
+build $toolchainDir/hardware/arduino/avr/cores/arduino/WString.h: patch ./patches/F-strings-workaround_patch.patch | toolchain.stamp
+  mainDir = $toolchainDir/
+  pool = console
+
+#build $toolchainDir/hardware/arduino/avr/cores/arduino/WString.h: patch ./patches/Some-changes-in-include-bits-to-allow-C-stdlib-usage.patch | toolchain.stamp
+#  mainDir = $toolchainDir/
+#  pool = console
+
+build toolchain_ready: dummy ./gcc.dd | toolchain.stamp avr.stamp gcc.stamp $toolchainDir/hardware/tools/avr/avr/include/avr/pgmspace.h

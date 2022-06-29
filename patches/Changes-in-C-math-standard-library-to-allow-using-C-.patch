@@ -1,0 +1,44 @@
+From 3e38d39dfac08667aa54632101235fc58757b3fc Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH] Changes in C math standard library to allow using C++
+ standard library.
+
+---
+ hardware/tools/avr/avr/include/math.h        | 13 +++++++++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/hardware/tools/avr/avr/include/math.h b/hardware/tools/avr/avr/include/math.h
+index 92e2b12..b1d2d09 100644
+--- a/hardware/tools/avr/avr/include/math.h
++++ b/hardware/tools/avr/avr/include/math.h
+@@ -67,6 +67,17 @@
+ /** \ingroup avr_math	*/
+ /*@{*/
+ 
++typedef float float_t;
++typedef double double_t;
++
++enum{
++	FP_NAN = 0,
++	FP_INFINITE = 1,
++	FP_ZERO = 2,
++	FP_SUBNORMAL = 3,
++	FP_NORMAL = 4
++};
++
+ /** The constant \a e.	*/
+ #define M_E		2.7182818284590452354
+ 
+@@ -322,6 +333,8 @@ extern double pow(double __x, double __y) __ATTR_CONST__;
+     "not-a-number" (NaN) object, otherwise 0.
+  */
+ extern int isnan(double __x) __ATTR_CONST__;
++#warning "ToDo: extern int isnan(double __x) __ATTR_CONST__; causes issues with bool std::isnan, so it cannot be used, this blocks special functions module"
++
+ #define	isnanf	isnan		/**< The alias for isnan().	*/
+ 
+ /**
+-- 
+2.32.0
+

@@ -1,0 +1,39 @@
+From 9c67fc3acbc4593f4688228c2263172cccf284ab Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH 5/5] Replaced the floating point macrodef constants with
+ `constexpr double` in the case of C++.
+
+---
+ hardware/arduino/avr/cores/arduino/Arduino.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/hardware/arduino/avr/cores/arduino/Arduino.h b/hardware/arduino/avr/cores/arduino/Arduino.h
+index 6008a4f..9587dd1 100644
+--- a/hardware/arduino/avr/cores/arduino/Arduino.h
++++ b/hardware/arduino/avr/cores/arduino/Arduino.h
+@@ -37,12 +37,21 @@
+ 
+ #include "binary.h"
+ 
++#if defined(__cplusplus)
++constexpr double PI = 3.1415926535897932384626433832795,
++HALF_PI = 1.5707963267948966192313216916398,
++TWO_PI = 6.283185307179586476925286766559,
++DEG_TO_RAD = 0.017453292519943295769236907684886,
++RAD_TO_DEG = 57.295779513082320876798154814105,
++EULER = 2.718281828459045235360287471352;
++#else
+ #define PI 3.1415926535897932384626433832795
+ #define HALF_PI 1.5707963267948966192313216916398
+ #define TWO_PI 6.283185307179586476925286766559
+ #define DEG_TO_RAD 0.017453292519943295769236907684886
+ #define RAD_TO_DEG 57.295779513082320876798154814105
+ #define EULER 2.718281828459045235360287471352
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C"{
+-- 
+2.32.0
+

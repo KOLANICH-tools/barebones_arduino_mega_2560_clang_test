@@ -1,0 +1,45 @@
+From b1e06b591582255017531a306f74be09cc1ec010 Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH 4/5] Excluded floating point macrodef constants out of `extern
+ "C"` block.
+
+---
+ hardware/arduino/avr/cores/arduino/Arduino.h | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/hardware/arduino/avr/cores/arduino/Arduino.h b/hardware/arduino/avr/cores/arduino/Arduino.h
+index 810b49c..6008a4f 100644
+--- a/hardware/arduino/avr/cores/arduino/Arduino.h
++++ b/hardware/arduino/avr/cores/arduino/Arduino.h
+@@ -37,6 +37,13 @@
+ 
+ #include "binary.h"
+ 
++#define PI 3.1415926535897932384626433832795
++#define HALF_PI 1.5707963267948966192313216916398
++#define TWO_PI 6.283185307179586476925286766559
++#define DEG_TO_RAD 0.017453292519943295769236907684886
++#define RAD_TO_DEG 57.295779513082320876798154814105
++#define EULER 2.718281828459045235360287471352
++
+ #ifdef __cplusplus
+ extern "C"{
+ #endif
+@@ -54,13 +61,6 @@ enum ARD_CHAR_ENUM_lAnoShw{
+   INPUT_PULLUP = 0x2
+ };
+ 
+-#define PI 3.1415926535897932384626433832795
+-#define HALF_PI 1.5707963267948966192313216916398
+-#define TWO_PI 6.283185307179586476925286766559
+-#define DEG_TO_RAD 0.017453292519943295769236907684886
+-#define RAD_TO_DEG 57.295779513082320876798154814105
+-#define EULER 2.718281828459045235360287471352
+-
+ enum ARD_CHAR_ENUM_lAnoShw{
+   SERIAL = 0x0,
+   DISPLAY = 0x1
+-- 
+2.32.0
+

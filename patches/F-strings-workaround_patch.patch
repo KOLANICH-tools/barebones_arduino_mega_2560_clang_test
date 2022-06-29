@@ -1,0 +1,42 @@
+From 5201a7a3395bfdf86e00b9dbd04d5bca77c577c2 Mon Sep 17 00:00:00 2001
+From: KOLANICH <KOLANICH@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 00:00:00 +0000
+Subject: [PATCH] A fix for the stuff using `F(...)` strings unbreaking
+ compilation with Clang with some degradation of efficiency.
+
+---
+ hardware/arduino/avr/cores/arduino/WString.h | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/hardware/arduino/avr/cores/arduino/WString.h b/hardware/arduino/avr/cores/arduino/WString.h
+index 77709c3..2b2c752 100644
+--- a/hardware/arduino/avr/cores/arduino/WString.h
++++ b/hardware/arduino/avr/cores/arduino/WString.h
+@@ -34,8 +34,22 @@
+ //     -felide-constructors
+ //     -std=c++0x
+ 
+-class __FlashStringHelper;
+-#define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
++#define CLANG_IS_BUGGY_CxlIxRntIzqsJNmpmLzKqadQFijHQp 1 // to temporatily disable F using PSTR, clang is currently buggy, crashes. When fixed, please set based on version
++#if !defined(__clang__) || CLANG_IS_BUGGY_CxlIxRntIzqsJNmpmLzKqadQFijHQp
++	class __FlashStringHelper;
++#else
++	using __FlashStringHelper = __attribute__((address_space(1))) char;
++#endif
++#if !defined(__clang__)
++	#define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
++#else
++	#if CLANG_IS_BUGGY_CxlIxRntIzqsJNmpmLzKqadQFijHQp
++		#warning "Clang is buggy, crashes, F(...) is now is just a regular string as a workaround"
++		#define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(string_literal))
++	#else
++		#define F(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
++	#endif
++#endif
+ 
+ // An inherited class for holding the result of a concatenation.  These
+ // result objects are assumed to be writable by subsequent concatenations.
+-- 
+2.32.0
+
